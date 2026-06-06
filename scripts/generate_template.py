@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a Zabbix 7.0 template XML — no <date> tag.
+"""Generate a Zabbix 7.0 template XML for Hermes Agent monitoring.
 
 Usage:
     python3 scripts/generate_template.py > Template_Hermes_Agent.xml
@@ -14,30 +14,28 @@ U = lambda: str(uuid.uuid4())
 z = Element("zabbix_export")
 SubElement(z, "version").text = "7.0"
 
-# Template group
 tgs = SubElement(z, "template_groups")
 tg = SubElement(tgs, "template_group")
 SubElement(tg, "uuid").text = U()
 SubElement(tg, "name").text = "Templates/Applications"
 
-# Template
 ts = SubElement(z, "templates")
 t = SubElement(ts, "template")
 SubElement(t, "uuid").text = U()
 SubElement(t, "template").text = "Template Hermes Agent"
 SubElement(t, "name").text = "Template Hermes Agent"
 SubElement(t, "description").text = (
-    "Zabbix template for monitoring Hermes Agent. "
-    "Uses the built-in API Server to collect gateway health, "
-    "token consumption, and session metrics."
+    "Zabbix template for monitoring Hermes Agent via its built-in "
+    "API Server. Monitors gateway health, platform connectivity, "
+    "token consumption, session activity, and tool usage across "
+    "Hermes profiles with API_SERVER_ENABLED=true."
 )
 grps = SubElement(t, "groups")
 g = SubElement(grps, "group")
 SubElement(g, "name").text = "Templates/Applications"
-
 SubElement(t, "items")
 
-# Discovery rule
+# ── Discovery Rule ─────────────────────────────────────────────
 drs = SubElement(t, "discovery_rules")
 dr = SubElement(drs, "discovery_rule")
 SubElement(dr, "uuid").text = U()
@@ -46,8 +44,6 @@ SubElement(dr, "type").text = "ZABBIX_AGENT"
 SubElement(dr, "key").text = "hermes.profiles.discovery"
 SubElement(dr, "delay").text = "1h"
 SubElement(dr, "keep_lost_resources").text = "1d"
-
-# Filter
 flt = SubElement(dr, "filter")
 conds = SubElement(flt, "conditions")
 c = SubElement(conds, "condition")
@@ -56,29 +52,11 @@ SubElement(c, "value").text = ".*"
 SubElement(c, "formulaid").text = "A"
 SubElement(c, "operator").text = "REGEXP"
 
-# Item prototypes
-ITEMS = [
-    ("Gateway running",       "health", "1m", "UNSIGNED", "$.gateway_up", "tokens",
-     [("Gateway process is down", "{last()}=0", "HIGH")]),
-    ("Active agents",         "health", "1m", "UNSIGNED", "$.active_agents", None, []),
-    ("Platforms connected",   "health", "1m", "UNSIGNED", "$.platforms_connected", None, []),
-    ("Platforms total",       "health", "1m", "UNSIGNED", "$.platforms_total", None, []),
-    ("Gateway PID",           "health", "5m", "UNSIGNED", "$.pid", None, []),
-    ("Input tokens",          "tokens", "5m", "UNSIGNED", "$.total_input_tokens", "tokens", []),
-    ("Output tokens",         "tokens", "5m", "UNSIGNED", "$.total_output_tokens", "tokens", []),
-    ("Cache read tokens",     "tokens", "5m", "UNSIGNED", "$.total_cache_read_tokens", "tokens", []),
-    ("Tokens (7d)",           "tokens", "5m", "UNSIGNED", "$.tokens_7d", "tokens", []),
-    ("Active sessions",       "tokens", "5m", "UNSIGNED", "$.active_sessions", None,
-     [("No active sessions for 1h", "{last()}=0 and {avg(1h)}=0", "INFO")]),
-    ("Total sessions",        "tokens", "5m", "UNSIGNED", "$.total_sessions", None, []),
-    ("Tool calls",            "tokens", "5m", "UNSIGNED", "$.total_tool_calls", None,
-     [("Tool call spike", "{change()}>500", "WARNING")]),
-    ("Messages",              "tokens", "5m", "UNSIGNED", "$.total_messages", None, []),
-]
+# ── Item Prototypes (all under one <item_prototypes>) ──────────
+ips = SubElement(dr, "item_prototypes")
 
-for name, keybase, delay, vtype, jpath, units, triggers in ITEMS:
-    ip = SubElement(dr, "item_prototypes")
-    i = SubElement(ip, "item_prototype")
+def make_item(name, keybase, delay, vtype, jpath, units=None, triggers=None):
+    i = SubElement(ips, "item_prototype")
     SubElement(i, "uuid").text = U()
     SubElement(i, "name").text = f"{{#PROFILE}}: {name}"
     SubElement(i, "type").text = "ZABBIX_AGENT"
@@ -87,55 +65,70 @@ for name, keybase, delay, vtype, jpath, units, triggers in ITEMS:
     SubElement(i, "value_type").text = vtype
     if units:
         SubElement(i, "units").text = units
-
     pp = SubElement(i, "preprocessing")
     s = SubElement(pp, "step")
     SubElement(s, "type").text = "JSONPATH"
     par = SubElement(s, "parameters")
     SubElement(par, "parameter").text = jpath
-
-    for tp_name, tp_expr, tp_pri in triggers:
+    if triggers:
         tps = SubElement(i, "triggers")
-        tp = SubElement(tps, "trigger_prototype")
-        SubElement(tp, "uuid").text = U()
-        SubElement(tp, "expression").text = tp_expr
-        SubElement(tp, "name").text = f"{{#PROFILE}}: {tp_name}"
-        SubElement(tp, "priority").text = tp_pri
+        for tp_name, tp_expr, tp_pri in triggers:
+            tp = SubElement(tps, "trigger_prototype")
+            SubElement(tp, "uuid").text = U()
+            SubElement(tp, "expression").text = tp_expr
+            SubElement(tp, "name").text = f"{{#PROFILE}}: {tp_name}"
+            SubElement(tp, "priority").text = tp_pri
 
-# Graph prototypes
-GRAPHS = [
-    ("Token consumption", [
-        ("1A7BFF", "7", 'hermes.check.tokens["{#PROFILE}"]'),
-        ("00E676", "7", 'hermes.check.tokens["{#PROFILE}"]'),
-        ("FF9100", "7", 'hermes.check.tokens["{#PROFILE}"]'),
-    ]),
-    ("Session activity", [
-        ("1A7BFF", "2", 'hermes.check.tokens["{#PROFILE}"]'),
-        ("00E676", "2", 'hermes.check.tokens["{#PROFILE}"]'),
-    ]),
-]
+make_item("Gateway running",       "health", "1m", "UNSIGNED", "$.gateway_up", None,
+          [("Gateway process is down", "{last()}=0", "HIGH")])
+make_item("Active agents",         "health", "1m", "UNSIGNED", "$.active_agents")
+make_item("Platforms connected",   "health", "1m", "UNSIGNED", "$.platforms_connected")
+make_item("Platforms total",       "health", "1m", "UNSIGNED", "$.platforms_total")
+make_item("Gateway PID",           "health", "5m", "UNSIGNED", "$.pid")
+make_item("Input tokens",          "tokens", "5m", "UNSIGNED", "$.total_input_tokens", "tokens")
+make_item("Output tokens",         "tokens", "5m", "UNSIGNED", "$.total_output_tokens", "tokens")
+make_item("Cache read tokens",     "tokens", "5m", "UNSIGNED", "$.total_cache_read_tokens", "tokens")
+make_item("Tokens (7d)",           "tokens", "5m", "UNSIGNED", "$.tokens_7d", "tokens")
+make_item("Active sessions",       "tokens", "5m", "UNSIGNED", "$.active_sessions", None,
+          [("No active sessions for 1h", "{last()}=0 and {avg(1h)}=0", "INFO")])
+make_item("Total sessions",        "tokens", "5m", "UNSIGNED", "$.total_sessions")
+make_item("Tool calls",            "tokens", "5m", "UNSIGNED", "$.total_tool_calls", None,
+          [("Tool call spike", "{change()}>500", "WARNING")])
+make_item("Messages",              "tokens", "5m", "UNSIGNED", "$.total_messages")
 
-for gname, gitems in GRAPHS:
-    gps = SubElement(dr, "graph_prototypes")
+# ── Graph Prototypes (all under one <graph_prototypes>) ────────
+gps = SubElement(dr, "graph_prototypes")
+
+def make_graph(name, items):
     gp = SubElement(gps, "graph_prototype")
     SubElement(gp, "uuid").text = U()
-    SubElement(gp, "name").text = f"{{#PROFILE}}: {gname}"
+    SubElement(gp, "name").text = f"{{#PROFILE}}: {name}"
     SubElement(gp, "width").text = "900"
     SubElement(gp, "height").text = "200"
     SubElement(gp, "ymin_type_1").text = "0"
-    for color, calc, key in gitems:
+    for color, calc, key in items:
         gi = SubElement(gp, "graph_items")
         gi_e = SubElement(gi, "graph_item")
         SubElement(gi_e, "sortorder").text = "0"
-        item_ref = SubElement(gi_e, "item")
-        SubElement(item_ref, "host").text = "Template Hermes Agent"
-        SubElement(item_ref, "key").text = key
+        ir = SubElement(gi_e, "item")
+        SubElement(ir, "host").text = "Template Hermes Agent"
+        SubElement(ir, "key").text = key
         SubElement(gi_e, "color").text = color
         SubElement(gi_e, "yaxisside").text = "0"
         SubElement(gi_e, "calc_fnc").text = calc
         SubElement(gi_e, "type").text = "0"
 
-# Output
+make_graph("Token consumption", [
+    ("1A7BFF", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("00E676", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("FF9100", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+])
+make_graph("Session activity", [
+    ("1A7BFF", "2", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("00E676", "2", 'hermes.check.tokens["{#PROFILE}"]'),
+])
+
+# ── Output ─────────────────────────────────────────────────────
 rough = tostring(z, encoding="unicode")
 parsed = minidom.parseString(rough.encode("utf-8"))
 print(parsed.toprettyxml(indent="    "))
