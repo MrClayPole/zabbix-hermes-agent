@@ -159,7 +159,7 @@ def cmd_profiles() -> str:
             if pdir.is_dir():
                 _check(pdir / ".env", pdir.name)
 
-    return json.dumps(profiles, indent=2)
+    return json.dumps({"data": profiles}, indent=2)
 
 
 def main():

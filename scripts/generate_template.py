@@ -124,6 +124,38 @@ make_graph("Session activity", [
     ("00E676", "AVG", 'hermes.check["tokens","total_sessions","{#PROFILE}"]'),
 ])
 
+# ── Trigger Prototypes (Zabbix 7.0: func(/host/key, params) format) ──
+tps = SubElement(dr, "trigger_prototypes")
+
+def make_host_key(item_key):
+    hostname = "Template Hermes Agent"
+    return f"/{hostname}/{item_key}"
+
+# Trigger: Gateway down
+tp1 = SubElement(tps, "trigger_prototype")
+SubElement(tp1, "uuid").text = U()
+SubElement(tp1, "expression").text = f'last(/Template Hermes Agent/hermes.check["health","gateway_up","{{#PROFILE}}"])' + '=0'
+SubElement(tp1, "name").text = '{#PROFILE}: Gateway process is down'
+SubElement(tp1, "priority").text = "HIGH"
+
+# Trigger: No active sessions
+tp2 = SubElement(tps, "trigger_prototype")
+SubElement(tp2, "uuid").text = U()
+SubElement(tp2, "expression").text = (
+    f'last(/Template Hermes Agent/hermes.check["tokens","active_sessions","{{#PROFILE}}"])' + '=0'
+    ' and '
+    f'avg(/Template Hermes Agent/hermes.check["tokens","active_sessions","{{#PROFILE}}"],1h)' + '=0'
+)
+SubElement(tp2, "name").text = '{#PROFILE}: No active sessions for 1h'
+SubElement(tp2, "priority").text = "INFO"
+
+# Trigger: Tool call spike
+tp3 = SubElement(tps, "trigger_prototype")
+SubElement(tp3, "uuid").text = U()
+SubElement(tp3, "expression").text = f'change(/Template Hermes Agent/hermes.check["tokens","tool_calls","{{#PROFILE}}"])' + '>500'
+SubElement(tp3, "name").text = '{#PROFILE}: Tool call spike'
+SubElement(tp3, "priority").text = "WARNING"
+
 # ── Output without minidom (avoids text node issues) ───────────
 rough = tostring(z, encoding="unicode")
 # minidom for pretty-printing, but strip the XML declaration since
