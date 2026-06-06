@@ -3,13 +3,13 @@
     <version>7.0</version>
     <template_groups>
         <template_group>
-            <uuid>40557325-c49b-466d-acb5-7973e704fd7d</uuid>
+            <uuid>ffdbed54-405b-4280-9cce-475f18999e16</uuid>
             <name>Templates/Applications</name>
         </template_group>
     </template_groups>
     <templates>
         <template>
-            <uuid>f179e2c3-a779-498f-bb6f-51efeda9c462</uuid>
+            <uuid>14c01de7-95b0-475a-8c8f-783e5fed84b5</uuid>
             <template>Template Hermes Agent</template>
             <name>Template Hermes Agent</name>
             <description>Zabbix template for monitoring Hermes Agent via its built-in API Server. Monitors gateway health, platform connectivity, token consumption, session activity, and tool usage.</description>
@@ -21,7 +21,7 @@
             <items/>
             <discovery_rules>
                 <discovery_rule>
-                    <uuid>4b3ee1e4-66d5-441d-ac98-dccf0a2904cb</uuid>
+                    <uuid>86a20cc9-1454-4625-a313-172bb3f956c1</uuid>
                     <name>Discover Hermes Profiles</name>
                     <type>ZABBIX_PASSIVE</type>
                     <key>hermes.profiles.discovery</key>
@@ -41,7 +41,7 @@
                     <lifetime>7d</lifetime>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>fc6f0513-e08d-4601-9a9e-d91484bfc809</uuid>
+                            <uuid>e28d6cf2-0c69-4447-87fe-c096bc878d21</uuid>
                             <name>{#PROFILE}: Gateway running</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -57,7 +57,7 @@
                             </preprocessing>
                             <trigger_prototypes>
                                 <trigger_prototype>
-                                    <uuid>f298eacf-55a3-4913-86bc-4d77dc6c9f14</uuid>
+                                    <uuid>10c355e2-cfe6-4fa4-b9fa-2afac941d68c</uuid>
                                     <expression>{last()}=0</expression>
                                     <name>{#PROFILE}: Gateway process is down</name>
                                     <priority>HIGH</priority>
@@ -65,7 +65,7 @@
                             </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>7ef0f7a1-d2c0-463a-92f3-22f2a9b45cd0</uuid>
+                            <uuid>2d59bd1c-ff6c-4ef7-acb4-c47e54287848</uuid>
                             <name>{#PROFILE}: Active agents</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -81,7 +81,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>b0996bf3-ddf2-49cd-b970-ee9856532a29</uuid>
+                            <uuid>a8c05e19-f9b3-44ad-8355-dffadfda4880</uuid>
                             <name>{#PROFILE}: Platforms connected</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -97,7 +97,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>505327ea-5e6a-4d48-b2e5-53a6816afe1c</uuid>
+                            <uuid>96a1f8ee-4257-4497-9433-05a376a72448</uuid>
                             <name>{#PROFILE}: Platforms total</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -113,7 +113,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>24aa95b2-6564-4e75-8026-08d3bdb49137</uuid>
+                            <uuid>075b421b-05b5-4e78-b7c1-e15a64226699</uuid>
                             <name>{#PROFILE}: Gateway PID</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -129,7 +129,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>dc75c0c0-088d-4aaa-8bf9-bcf874a9e31f</uuid>
+                            <uuid>ca6fc8a3-25e5-4372-bae2-6f49509e51e5</uuid>
                             <name>{#PROFILE}: Input tokens</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -146,7 +146,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>466242c9-d44a-427d-a2d6-742a3cbeadd0</uuid>
+                            <uuid>b5801558-ac69-4ba5-82fc-8beeda044cb2</uuid>
                             <name>{#PROFILE}: Output tokens</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -163,7 +163,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>1439d83c-b784-4c07-8751-93ad1c7c703d</uuid>
+                            <uuid>d5a711ba-0887-4db9-821d-226a6b3e5dec</uuid>
                             <name>{#PROFILE}: Cache read tokens</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -180,7 +180,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>be74be5a-289a-4588-b2dc-820738ab966d</uuid>
+                            <uuid>32dc1e60-9458-4798-a7b2-9da31fc49a5e</uuid>
                             <name>{#PROFILE}: Tokens (7d)</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -197,7 +197,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>c8992779-e3f4-4025-bc88-cfd8dabe51f4</uuid>
+                            <uuid>df85cc37-bfb9-442a-8353-ed9573d46552</uuid>
                             <name>{#PROFILE}: Active sessions</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -213,7 +213,7 @@
                             </preprocessing>
                             <trigger_prototypes>
                                 <trigger_prototype>
-                                    <uuid>928c6d09-5b73-48be-aa4e-d757c8b07004</uuid>
+                                    <uuid>d8ec02c1-f9d2-4dd1-84c4-cc89fc0af350</uuid>
                                     <expression>{last()}=0 and {avg(1h)}=0</expression>
                                     <name>{#PROFILE}: No active sessions for 1h</name>
                                     <priority>INFO</priority>
@@ -221,7 +221,7 @@
                             </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>60565b31-5177-4f8c-af4e-a709a77fc193</uuid>
+                            <uuid>fd2db90e-8465-45e7-ad9b-90f1b4e28b86</uuid>
                             <name>{#PROFILE}: Total sessions</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -237,7 +237,7 @@
                             </preprocessing>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>5f44f2b4-86cb-42b4-89cd-6c42bda34d7d</uuid>
+                            <uuid>160b6302-ca6b-4c20-9b03-cb70160bad81</uuid>
                             <name>{#PROFILE}: Tool calls</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -253,7 +253,7 @@
                             </preprocessing>
                             <trigger_prototypes>
                                 <trigger_prototype>
-                                    <uuid>1cbe2ea7-7d5e-4bdd-8c24-d4739a27998f</uuid>
+                                    <uuid>9d67112b-fc2e-42e9-b70b-9c0a86ec5ffa</uuid>
                                     <expression>{change()}&gt;500</expression>
                                     <name>{#PROFILE}: Tool call spike</name>
                                     <priority>WARNING</priority>
@@ -261,7 +261,7 @@
                             </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
-                            <uuid>08db266f-b793-4cde-aa0b-1e594a4aab92</uuid>
+                            <uuid>3e6eb28b-4aac-44f2-a26e-c31b10962908</uuid>
                             <name>{#PROFILE}: Messages</name>
                             <type>ZABBIX_PASSIVE</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -279,18 +279,18 @@
                     </item_prototypes>
                     <graph_prototypes>
                         <graph_prototype>
-                            <uuid>c0a254d6-d2c1-4edc-b890-9718e963852d</uuid>
+                            <uuid>21682573-ce23-4eb6-9dc6-086f952231a5</uuid>
                             <name>{#PROFILE}: Token consumption</name>
                             <width>900</width>
                             <height>200</height>
-                            <ymin_type_1>0</ymin_type_1>
+                            <ymin_type_1>CALCULATED</ymin_type_1>
                             <graph_items>
                                 <graph_item>
                                     <sortorder>0</sortorder>
                                     <color>1A7BFF</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>7</calc_fnc>
-                                    <type>0</type>
+                                    <yaxisside>LEFT</yaxisside>
+                                    <calc_fnc>LAST</calc_fnc>
+                                    <type>SIMPLE</type>
                                     <item>
                                         <host>Template Hermes Agent</host>
                                         <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -299,9 +299,9 @@
                                 <graph_item>
                                     <sortorder>1</sortorder>
                                     <color>00E676</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>7</calc_fnc>
-                                    <type>0</type>
+                                    <yaxisside>LEFT</yaxisside>
+                                    <calc_fnc>LAST</calc_fnc>
+                                    <type>SIMPLE</type>
                                     <item>
                                         <host>Template Hermes Agent</host>
                                         <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -310,9 +310,9 @@
                                 <graph_item>
                                     <sortorder>2</sortorder>
                                     <color>FF9100</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>7</calc_fnc>
-                                    <type>0</type>
+                                    <yaxisside>LEFT</yaxisside>
+                                    <calc_fnc>LAST</calc_fnc>
+                                    <type>SIMPLE</type>
                                     <item>
                                         <host>Template Hermes Agent</host>
                                         <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -321,18 +321,18 @@
                             </graph_items>
                         </graph_prototype>
                         <graph_prototype>
-                            <uuid>40070423-7cc3-483b-becf-deaa5e5b33f1</uuid>
+                            <uuid>5f2a5356-9596-4ab3-b695-995604b62658</uuid>
                             <name>{#PROFILE}: Session activity</name>
                             <width>900</width>
                             <height>200</height>
-                            <ymin_type_1>0</ymin_type_1>
+                            <ymin_type_1>CALCULATED</ymin_type_1>
                             <graph_items>
                                 <graph_item>
                                     <sortorder>0</sortorder>
                                     <color>1A7BFF</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>2</calc_fnc>
-                                    <type>0</type>
+                                    <yaxisside>LEFT</yaxisside>
+                                    <calc_fnc>AVG</calc_fnc>
+                                    <type>SIMPLE</type>
                                     <item>
                                         <host>Template Hermes Agent</host>
                                         <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -341,9 +341,9 @@
                                 <graph_item>
                                     <sortorder>1</sortorder>
                                     <color>00E676</color>
-                                    <yaxisside>0</yaxisside>
-                                    <calc_fnc>2</calc_fnc>
-                                    <type>0</type>
+                                    <yaxisside>LEFT</yaxisside>
+                                    <calc_fnc>AVG</calc_fnc>
+                                    <type>SIMPLE</type>
                                     <item>
                                         <host>Template Hermes Agent</host>
                                         <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>

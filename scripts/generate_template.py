@@ -111,28 +111,28 @@ def make_graph(name, items):
     SubElement(gp, "name").text = f"{{#PROFILE}}: {name}"
     SubElement(gp, "width").text = "900"
     SubElement(gp, "height").text = "200"
-    SubElement(gp, "ymin_type_1").text = "0"
+    SubElement(gp, "ymin_type_1").text = "CALCULATED"
     # ONE graph_items with MULTIPLE graph_item children
     gis = SubElement(gp, "graph_items")
-    for sortorder, (color, calc, key) in enumerate(items):
+    for sortorder, (color, calc_fnc_name, key) in enumerate(items):
         gi = SubElement(gis, "graph_item")
         SubElement(gi, "sortorder").text = str(sortorder)
         SubElement(gi, "color").text = color
-        SubElement(gi, "yaxisside").text = "0"
-        SubElement(gi, "calc_fnc").text = calc
-        SubElement(gi, "type").text = "0"
+        SubElement(gi, "yaxisside").text = "LEFT"
+        SubElement(gi, "calc_fnc").text = calc_fnc_name
+        SubElement(gi, "type").text = "SIMPLE"
         ir = SubElement(gi, "item")
         SubElement(ir, "host").text = "Template Hermes Agent"
         SubElement(ir, "key").text = key
 
 make_graph("Token consumption", [
-    ("1A7BFF", "7", 'hermes.check.tokens["{#PROFILE}"]'),
-    ("00E676", "7", 'hermes.check.tokens["{#PROFILE}"]'),
-    ("FF9100", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("1A7BFF", "LAST", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("00E676", "LAST", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("FF9100", "LAST", 'hermes.check.tokens["{#PROFILE}"]'),
 ])
 make_graph("Session activity", [
-    ("1A7BFF", "2", 'hermes.check.tokens["{#PROFILE}"]'),
-    ("00E676", "2", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("1A7BFF", "AVG", 'hermes.check.tokens["{#PROFILE}"]'),
+    ("00E676", "AVG", 'hermes.check.tokens["{#PROFILE}"]'),
 ])
 
 # ── Output without minidom (avoids text node issues) ───────────
