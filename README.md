@@ -5,22 +5,27 @@ Monitor [Hermes Agent](https://hermes-agent.nousresearch.com) instances via Zabb
 ## Quick Start
 
 ```bash
-# 1. Deploy to the Zabbix agent host
-sudo bash install.sh
+# 1. Deploy scripts to the Zabbix agent host
+sudo mkdir -p /etc/zabbix/scripts
+sudo cp scripts/hermes_check.py scripts/hermes_lld.py /etc/zabbix/scripts/
+sudo chmod 755 /etc/zabbix/scripts/hermes_check.py /etc/zabbix/scripts/hermes_lld.py
 
-# 2. Restart the agent
-sudo systemctl restart zabbix-agent
+# 2. Deploy the agent2 config
+sudo cp zabbix/hermes_agent2.conf /etc/zabbix/zabbix_agent2.d/hermes_agent.conf
 
-# 3. Import Template_Hermes_Agent.xml into Zabbix Server
+# 3. Restart the agent2 service
+sudo systemctl restart zabbix-agent2
+
+# 4. Import Template_Hermes_Agent.xml into Zabbix Server
 #    Configuration → Templates → Import → select template/Template_Hermes_Agent.xml
 
-# 4. Attach the template to the Hermes host
+# 5. Attach the template to the Hermes host
 #    Configuration → Hosts → [your host] → Templates → Link "Template Hermes Agent"
 ```
 
 ## Prerequisites
 
-- **Zabbix 6.4+** (agent + server)
+- **Zabbix 6.4+** (agent2 + server)
 - **Hermes Agent** with `API_SERVER_ENABLED=true` in the target profile's `.env`
 
 Add to `~/.hermes/.env` (or `~/.hermes/profiles/<name>/.env`):
@@ -37,19 +42,19 @@ Restart the Hermes gateway after adding these.
 ## Architecture
 
 ```
-┌──────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│ Hermes       │────▶│ Hermes API Server│◀────│ Zabbix Agent    │
-│ Gateway      │     │ :8642            │     │ (UserParameter) │
-│ (profile)    │     │ /health/detailed │     │                 │
-│              │     │ /api/sessions    │     │ hermes_check.py │
-└──────────────┘     └──────────────────┘     └─────────────────┘
+┌──────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│ Hermes       │────▶│ Hermes API Server│◀────│ Zabbix agent2    │
+│ Gateway      │     │ :8642            │     │ (UserParameter)  │
+│ (profile)    │     │ /health/detailed │     │                  │
+│              │     │ /api/sessions    │     │ hermes_check.py  │
+└──────────────┘     └──────────────────┘     └──────────────────┘
                                                        │
                                                        ▼
-                                                ┌─────────────────┐
-                                                │ Zabbix Server   │
-                                                │ (Template)      │
-                                                │ Triggers/Graphs │
-                                                └─────────────────┘
+                                                ┌──────────────────┐
+                                                │ Zabbix Server    │
+                                                │ (Template)       │
+                                                │ Triggers/Graphs  │
+                                                └──────────────────┘
 ```
 
 The API Server is a standard Hermes gateway platform adapter. Each profile
@@ -67,21 +72,42 @@ zabbix-hermes-agent/
 ├── template/
 │   └── Template_Hermes_Agent.xml   # Zabbix template (6.4+)
 ├── zabbix/
-│   └── hermes_agentd.conf    # UserParameter configuration
-├── install.sh                # Deploy scripts + config
+│   └── hermes_agent2.conf    # UserParameter config for zabbix-agent2
 ├── LICENSE                   # MIT
 └── README.md
 ```
 
+## Per-Profile Gateway Monitoring
+
+If you run multiple Hermes gateways (e.g. `default` on port 8642 and `glados` on port 8643), each gateway needs its own API server on a unique port:
+
+**`~/.hermes/.env` (default):**
+```bash
+API_SERVER_ENABLED=true
+API_SERVER_KEY=key-default
+API_SERVER_PORT=8642
+```
+
+**`~/.hermes/profiles/glados/.env`:**
+```bash
+API_SERVER_ENABLED=true
+API_SERVER_KEY=key-glados
+API_SERVER_PORT=8643
+```
+
+The LLD discovery script reads each profile's `.env` and returns all
+profiles with `API_SERVER_ENABLED=true`. Zabbix then creates item
+prototypes for each discovered profile automatically.
+
 ## What It Monitors
 
-### Per Profile (auto-discovered)
+### Per Profile (auto-discovered via LLD)
 
 | Category | Items | Trigger |
 |----------|-------|---------|
-| **Gateway health** | running (1/0), active agents, platforms connected, PID | HIGH if gateway down |
-| **Token consumption** | input, output, cache read, 7d total | WARNING on spike (>500 tool call change) |
-| **Session activity** | active sessions, total sessions, tool calls, messages | INFO if idle for 1h |
+| **Gateway health** | running (1/0), active agents, platforms connected, PID | **HIGH** if gateway down |
+| **Token consumption** | input, output, cache read, 7d total | **WARNING** on spike (>500 tool call change) |
+| **Session activity** | active sessions, total sessions, tool calls, messages | **INFO** if idle for 1h |
 
 ### Graphs
 
@@ -97,19 +123,26 @@ on the next Low-Level Discovery poll (default: 1 hour).
 # To verify discovery:
 python3 scripts/hermes_check.py profiles
 # → [{"{#PROFILE}": "default"}, {"{#PROFILE}": "glados"}]
+
+# Test gateway health for a specific profile:
+python3 scripts/hermes_check.py health default
+# → {"gateway_up": 1, "active_agents": 0, ...}
+
+# Test token aggregation:
+python3 scripts/hermes_check.py tokens default
+# → {"total_input_tokens": 71651198, "total_output_tokens": 1032342, ...}
 ```
-
-## Customisation
-
-- **{$HERMES_TOKEN_SPIKE_THRESHOLD}** — tool call change threshold (default: 500)
-- **HERMES_HOME** env var — override if Hermes lives outside `~/.hermes` (install.sh creates a wrapper)
 
 ## Token vs Cost
 
 This template tracks **token counts**, not dollar cost. Cost estimates from
 the API are client-side approximations. Tokens are exact values from the LLM
-response and stable across reads.
+response and stable across reads. The `cache_read_tokens` metric is
+especially useful — if the cache hit ratio drops, your sessions are
+diverging and both latency and real cost go up.
 
 ## License
 
 MIT
+
+Copyright (c) 2026 Mat Clarke

@@ -34,7 +34,7 @@ Trigger Prototypes:
 
 Prerequisites:
   - hermes_check.py and hermes_lld.py installed on Zabbix agent
-  - hermes_agentd.conf deployed to zabbix_agentd.d/
+  - hermes_agent2.conf deployed to zabbix_agent2.d/
   - Target Hermes profile has API_SERVER_ENABLED=true in its .env
 </description>
             <groups>
