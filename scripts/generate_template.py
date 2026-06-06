@@ -43,7 +43,6 @@ SubElement(dr, "name").text = "Discover Hermes Profiles"
 SubElement(dr, "type").text = "ZABBIX_AGENT"
 SubElement(dr, "key").text = "hermes.profiles.discovery"
 SubElement(dr, "delay").text = "1h"
-SubElement(dr, "keep_lost_resources").text = "1d"
 flt = SubElement(dr, "filter")
 conds = SubElement(flt, "conditions")
 c = SubElement(conds, "condition")
