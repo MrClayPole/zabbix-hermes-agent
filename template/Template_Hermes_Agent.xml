@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>6.4</version>
-    <date>2026-06-06T00:00:00Z</date>
+    <version>7.0</version>
     <template_groups>
         <template_group>
             <uuid>a1b2c3d4-e5f6-7890-abcd-ef1234567890</uuid>
@@ -34,9 +33,8 @@ Trigger Prototypes:
 
 Prerequisites:
   - hermes_check.py and hermes_lld.py installed on Zabbix agent
-  - hermes_agent2.conf deployed to zabbix_agent2.d/
-  - Target Hermes profile has API_SERVER_ENABLED=true in its .env
-</description>
+  - hermes_agent2.conf deployed to /etc/zabbix/zabbix_agent2.d/
+  - Target Hermes profile has API_SERVER_ENABLED=true in its .env</description>
             <groups>
                 <group>
                     <name>Templates/Applications</name>
@@ -124,6 +122,24 @@ Prerequisites:
                                     <type>JSONPATH</type>
                                     <parameters>
                                         <parameter>$.platforms_connected</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                        </item_prototype>
+
+                        <item_prototype>
+                            <uuid>b7c8d9e0-f1a2-3456-abcd-678901234567</uuid>
+                            <name>{#PROFILE}: Platforms total</name>
+                            <type>ZABBIX_AGENT</type>
+                            <key>hermes.check.health["{#PROFILE}"]</key>
+                            <delay>1m</delay>
+                            <value_type>UNSIGNED</value_type>
+                            <description>Total configured platforms (connected + disconnected).</description>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.platforms_total</parameter>
                                     </parameters>
                                 </step>
                             </preprocessing>
@@ -243,7 +259,7 @@ Prerequisites:
                                 <trigger_prototype>
                                     <uuid>c5d6e7f8-a9b0-1234-cdef-345678901234</uuid>
                                     <expression>{last()}=0 and {avg(1h)}=0</expression>
-                                    <name>{#PROFILE}: No active sessions for 1h — profile idle</name>
+                                    <name>{#PROFILE}: No active sessions for 1h</name>
                                     <priority>INFO</priority>
                                     <description>No active sessions detected for profile {#PROFILE} in the last hour.</description>
                                 </trigger_prototype>
@@ -286,7 +302,7 @@ Prerequisites:
                                 <trigger_prototype>
                                     <uuid>f8a9b0c1-d2e3-4567-fabc-678901234567</uuid>
                                     <expression>{change()}&gt;500</expression>
-                                    <name>{#PROFILE}: Tool call spike — {ITEM.LASTVALUE1} calls</name>
+                                    <name>{#PROFILE}: Tool call spike</name>
                                     <priority>WARNING</priority>
                                     <description>Tool call count jumped by more than 500 since last check. May indicate a runaway agent.</description>
                                 </trigger_prototype>

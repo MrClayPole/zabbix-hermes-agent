@@ -25,7 +25,7 @@ sudo systemctl restart zabbix-agent2
 
 ## Prerequisites
 
-- **Zabbix 6.4+** (agent2 + server)
+- **Zabbix 7.0+** (agent2 + server)
 - **Hermes Agent** with `API_SERVER_ENABLED=true` in the target profile's `.env`
 
 Add to `~/.hermes/.env` (or `~/.hermes/profiles/<name>/.env`):
@@ -70,7 +70,7 @@ zabbix-hermes-agent/
 │   ├── hermes_check.py       # Main check script (health, tokens, profiles)
 │   └── hermes_lld.py         # Zabbix LLD wrapper
 ├── template/
-│   └── Template_Hermes_Agent.xml   # Zabbix template (6.4+)
+│   └── Template_Hermes_Agent.xml   # Zabbix template (7.0+)
 ├── zabbix/
 │   └── hermes_agent2.conf    # UserParameter config for zabbix-agent2
 ├── LICENSE                   # MIT
