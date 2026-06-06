@@ -143,7 +143,7 @@ for item_key, tp_name, tp_expr, tp_pri in all_triggers:
     tp = SubElement(tps, "trigger_prototype")
     SubElement(tp, "uuid").text = U()
     # Convert shorthand {func()} to full {host:key.func()} format
-    hostname = "Template Hermes Agent"
+    hostname = "HOST.HOST"
     full_expr = re.sub(
         r'\{(\w+)\(([^)]*)\)\}',
         lambda m: f'{{{hostname}:{item_key}.{m.group(1)}({m.group(2)})}}',
