@@ -40,7 +40,6 @@ drs = SubElement(t, "discovery_rules")
 dr = SubElement(drs, "discovery_rule")
 SubElement(dr, "uuid").text = U()
 SubElement(dr, "name").text = "Discover Hermes Profiles"
-SubElement(dr, "type").text = "ZABBIX"
 SubElement(dr, "key").text = "hermes.profiles.discovery"
 SubElement(dr, "delay").text = "1h"
 flt = SubElement(dr, "filter")
@@ -58,7 +57,6 @@ def make_item(name, keybase, delay, vtype, jpath, units=None, triggers=None):
     i = SubElement(ips, "item_prototype")
     SubElement(i, "uuid").text = U()
     SubElement(i, "name").text = f"{{#PROFILE}}: {name}"
-    SubElement(i, "type").text = "ZABBIX"
     SubElement(i, "key").text = f'hermes.check.{keybase}["{{#PROFILE}}"]'
     SubElement(i, "delay").text = delay
     SubElement(i, "value_type").text = vtype
