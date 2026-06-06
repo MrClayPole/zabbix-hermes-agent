@@ -1,26 +1,27 @@
 <?xml version="1.0" ?>
 <zabbix_export>
     <version>7.0</version>
-    <date>2026-06-06T00:00:00Z</date>
     <template_groups>
         <template_group>
-            <uuid>14923766-569a-435d-9fe3-07c65ed1cb01</uuid>
+            <uuid>6062ea6f-9bd6-4328-9015-ee558a72d484</uuid>
             <name>Templates/Applications</name>
         </template_group>
     </template_groups>
     <templates>
         <template>
-            <uuid>8b8672cb-c7fc-45b0-96a0-5fd6dd8c7c13</uuid>
+            <uuid>7f93cbb2-300d-46fd-a0e3-64ec0dcb1785</uuid>
             <template>Template Hermes Agent</template>
             <name>Template Hermes Agent</name>
             <description>Zabbix template for monitoring Hermes Agent. Uses the built-in API Server to collect gateway health, token consumption, and session metrics.</description>
             <groups>
-                <group>Templates/Applications</group>
+                <group>
+                    <name>Templates/Applications</name>
+                </group>
             </groups>
             <items/>
             <discovery_rules>
                 <discovery_rule>
-                    <uuid>e3de0c5a-3a9a-4fcc-ad4f-32eaca8606f9</uuid>
+                    <uuid>df38e4b3-abc7-44ce-ab0c-cb815b8b3753</uuid>
                     <name>Discover Hermes Profiles</name>
                     <type>ZABBIX_AGENT</type>
                     <key>hermes.profiles.discovery</key>
@@ -38,7 +39,7 @@
                     </filter>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>f2ddb92b-f141-47f2-814a-a949ad260d39</uuid>
+                            <uuid>f49bbe2e-32e6-4432-8272-12de68152045</uuid>
                             <name>{#PROFILE}: Gateway running</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -55,7 +56,7 @@
                             </preprocessing>
                             <triggers>
                                 <trigger_prototype>
-                                    <uuid>c705ee2f-f5e5-4607-b510-4db7fa1d2125</uuid>
+                                    <uuid>edbd17ce-7a52-49cb-adb3-3efbeef1b80c</uuid>
                                     <expression>{last()}=0</expression>
                                     <name>{#PROFILE}: Gateway process is down</name>
                                     <priority>HIGH</priority>
@@ -65,7 +66,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>ecbb97a5-dcac-4bd3-943c-0f6f2b71f96b</uuid>
+                            <uuid>9bc88a5c-60a9-4769-a51d-060da2ea1100</uuid>
                             <name>{#PROFILE}: Active agents</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -83,7 +84,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>ef900bdb-21a0-40df-aa81-629a13bf2500</uuid>
+                            <uuid>19965ac6-55c9-4eae-af19-65a5d3ec1385</uuid>
                             <name>{#PROFILE}: Platforms connected</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -101,7 +102,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>e3837964-1fae-4b65-a7a4-953ca8d93b8d</uuid>
+                            <uuid>3c25ed5f-6be6-4846-98ab-c40d5191ace0</uuid>
                             <name>{#PROFILE}: Platforms total</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -119,7 +120,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>979e4478-31e1-4668-b39f-12e0d4b994e8</uuid>
+                            <uuid>d09cd547-cb7c-4e4c-a007-a8e84fe49bd9</uuid>
                             <name>{#PROFILE}: Gateway PID</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
@@ -137,7 +138,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>60e0eb8a-b630-404f-9ac1-66a4eaf29bec</uuid>
+                            <uuid>6e886a64-887c-4735-8dc2-96359c3797c7</uuid>
                             <name>{#PROFILE}: Input tokens</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -156,7 +157,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>1328632f-a40b-4843-9087-85e00bf37f4c</uuid>
+                            <uuid>a4ae2be3-6d8c-43f8-92bb-0d4d240d1824</uuid>
                             <name>{#PROFILE}: Output tokens</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -175,7 +176,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>219bf393-085c-4990-88e0-be21e0cc9cb4</uuid>
+                            <uuid>35be404c-b76a-4143-b78e-81655358b9c8</uuid>
                             <name>{#PROFILE}: Cache read tokens</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -194,7 +195,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>bff888bc-2774-4051-a776-31f2bfd21515</uuid>
+                            <uuid>f94087b3-81cb-49e1-bfa5-9b70bf6ab55e</uuid>
                             <name>{#PROFILE}: Tokens (7d)</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -213,7 +214,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>266fda8f-88e7-49ef-bead-60f0e711c806</uuid>
+                            <uuid>a77d97f8-dc38-4e35-88a4-a9b054fe7b7e</uuid>
                             <name>{#PROFILE}: Active sessions</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -229,7 +230,7 @@
                             </preprocessing>
                             <triggers>
                                 <trigger_prototype>
-                                    <uuid>e995dd13-8e21-42e4-bd8c-cfaaf3c6ee4e</uuid>
+                                    <uuid>cfafe240-7e12-4c15-a4dc-1c34a2531c17</uuid>
                                     <expression>{last()}=0 and {avg(1h)}=0</expression>
                                     <name>{#PROFILE}: No active sessions for 1h</name>
                                     <priority>INFO</priority>
@@ -239,7 +240,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>59a7e873-6556-47c1-a3e0-0ee263f51339</uuid>
+                            <uuid>5de78713-21cd-4716-9aff-08ed088a1f48</uuid>
                             <name>{#PROFILE}: Total sessions</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -257,7 +258,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>e082b336-159e-4c7c-8096-6798f150bdef</uuid>
+                            <uuid>d7b541ca-3c89-4a8b-b304-fb5c3abfd605</uuid>
                             <name>{#PROFILE}: Tool calls</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -273,7 +274,7 @@
                             </preprocessing>
                             <triggers>
                                 <trigger_prototype>
-                                    <uuid>5aa7a8f4-ba65-4bd7-9be6-6b5d4368cc30</uuid>
+                                    <uuid>43bda158-7fa2-4ba6-bf45-0bd48ef5e179</uuid>
                                     <expression>{change()}&gt;500</expression>
                                     <name>{#PROFILE}: Tool call spike</name>
                                     <priority>WARNING</priority>
@@ -283,7 +284,7 @@
                     </item_prototypes>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>39546a3e-6186-4aa3-be48-a73fde853c7e</uuid>
+                            <uuid>895c173c-5d6f-4aa4-91ac-7a9cfb44da17</uuid>
                             <name>{#PROFILE}: Messages</name>
                             <type>ZABBIX_AGENT</type>
                             <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
@@ -301,7 +302,7 @@
                     </item_prototypes>
                     <graph_prototypes>
                         <graph_prototype>
-                            <uuid>9ac55e86-508e-44fe-befb-40f026d974d6</uuid>
+                            <uuid>a333c0a5-24d9-4dd9-ab05-41bcd815cc6c</uuid>
                             <name>{#PROFILE}: Token consumption</name>
                             <width>900</width>
                             <height>200</height>
@@ -349,7 +350,7 @@
                     </graph_prototypes>
                     <graph_prototypes>
                         <graph_prototype>
-                            <uuid>a2e61819-b7ad-4c5c-8094-69eefe8f791b</uuid>
+                            <uuid>f2c2dec7-3550-42fd-aade-a69b248aa767</uuid>
                             <name>{#PROFILE}: Session activity</name>
                             <width>900</width>
                             <height>200</height>

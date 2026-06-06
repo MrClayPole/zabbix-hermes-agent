@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a minimal Zabbix 7.0 template XML. Use this if the pre-built
-XML in template/ fails to import — it generates everything locally with
-proper UUIDs.
+"""Generate a Zabbix 7.0 template XML — no <date> tag.
 
 Usage:
     python3 scripts/generate_template.py > Template_Hermes_Agent.xml
@@ -15,7 +13,6 @@ U = lambda: str(uuid.uuid4())
 
 z = Element("zabbix_export")
 SubElement(z, "version").text = "7.0"
-SubElement(z, "date").text = "2026-06-06T00:00:00Z"
 
 # Template group
 tgs = SubElement(z, "template_groups")
@@ -35,9 +32,9 @@ SubElement(t, "description").text = (
     "token consumption, and session metrics."
 )
 grps = SubElement(t, "groups")
-SubElement(grps, "group").text = "Templates/Applications"
+g = SubElement(grps, "group")
+SubElement(g, "name").text = "Templates/Applications"
 
-# Empty items
 SubElement(t, "items")
 
 # Discovery rule
@@ -106,15 +103,19 @@ for name, keybase, delay, vtype, jpath, units, triggers in ITEMS:
         SubElement(tp, "priority").text = tp_pri
 
 # Graph prototypes
-GRAPH_ITEMS = {
-    "Token consumption": [("1A7BFF", "7", "$.total_input_tokens"),
-                           ("00E676", "7", "$.total_output_tokens"),
-                           ("FF9100", "7", "$.total_cache_read_tokens")],
-    "Session activity":  [("1A7BFF", "2", "$.active_sessions"),
-                           ("00E676", "2", "$.total_tool_calls")],
-}
+GRAPHS = [
+    ("Token consumption", [
+        ("1A7BFF", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+        ("00E676", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+        ("FF9100", "7", 'hermes.check.tokens["{#PROFILE}"]'),
+    ]),
+    ("Session activity", [
+        ("1A7BFF", "2", 'hermes.check.tokens["{#PROFILE}"]'),
+        ("00E676", "2", 'hermes.check.tokens["{#PROFILE}"]'),
+    ]),
+]
 
-for gname, gitems in GRAPH_ITEMS.items():
+for gname, gitems in GRAPHS:
     gps = SubElement(dr, "graph_prototypes")
     gp = SubElement(gps, "graph_prototype")
     SubElement(gp, "uuid").text = U()
@@ -122,13 +123,13 @@ for gname, gitems in GRAPH_ITEMS.items():
     SubElement(gp, "width").text = "900"
     SubElement(gp, "height").text = "200"
     SubElement(gp, "ymin_type_1").text = "0"
-    for color, calc, _ in gitems:
+    for color, calc, key in gitems:
         gi = SubElement(gp, "graph_items")
         gi_e = SubElement(gi, "graph_item")
         SubElement(gi_e, "sortorder").text = "0"
         item_ref = SubElement(gi_e, "item")
         SubElement(item_ref, "host").text = "Template Hermes Agent"
-        SubElement(item_ref, "key").text = f'hermes.check.tokens["{{#PROFILE}}"]'
+        SubElement(item_ref, "key").text = key
         SubElement(gi_e, "color").text = color
         SubElement(gi_e, "yaxisside").text = "0"
         SubElement(gi_e, "calc_fnc").text = calc
