@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
-"""Generate a Zabbix 7.0 template XML for Hermes Agent monitoring.
+"""Generate a Zabbix 7.0 LTS template XML for Hermes Agent monitoring.
 
 Usage:
     python3 scripts/generate_template.py > Template_Hermes_Agent.xml
+
+This generator uses the exact XML schema values from Zabbix 7.0 source:
+    - C70XmlValidator.php (schema definitions)
+    - CXmlConstantName.php (XML string constants)
+    - CXmlConstantValue.php (PHP numeric constants)
+
+Key 7.0 changes from 6.x:
+    - No <date> tag (removed in 6.4)
+    - <type> uses ZABBIX_PASSIVE (not ZABBIX_AGENT)
+    - Filter <operator> uses MATCHES_REGEX (not REGEXP)
+    - Filter needs <evaltype> before <conditions>
+    - Discovery lifetime uses <lifetime_type> + <lifetime>
 """
 
 import uuid
@@ -14,11 +26,13 @@ U = lambda: str(uuid.uuid4())
 z = Element("zabbix_export")
 SubElement(z, "version").text = "7.0"
 
+# ── Template Group ─────────────────────────────────────────────
 tgs = SubElement(z, "template_groups")
 tg = SubElement(tgs, "template_group")
 SubElement(tg, "uuid").text = U()
 SubElement(tg, "name").text = "Templates/Applications"
 
+# ── Template ───────────────────────────────────────────────────
 ts = SubElement(z, "templates")
 t = SubElement(ts, "template")
 SubElement(t, "uuid").text = U()
@@ -40,23 +54,32 @@ drs = SubElement(t, "discovery_rules")
 dr = SubElement(drs, "discovery_rule")
 SubElement(dr, "uuid").text = U()
 SubElement(dr, "name").text = "Discover Hermes Profiles"
+SubElement(dr, "type").text = "ZABBIX_PASSIVE"
 SubElement(dr, "key").text = "hermes.profiles.discovery"
 SubElement(dr, "delay").text = "1h"
+
+# Filter
 flt = SubElement(dr, "filter")
+SubElement(flt, "evaltype").text = "AND_OR"
 conds = SubElement(flt, "conditions")
 c = SubElement(conds, "condition")
 SubElement(c, "macro").text = "{#PROFILE}"
 SubElement(c, "value").text = ".*"
+SubElement(c, "operator").text = "MATCHES_REGEX"
 SubElement(c, "formulaid").text = "A"
-SubElement(c, "operator").text = "REGEXP"
 
-# ── Item Prototypes (all under one <item_prototypes>) ──────────
+# Lifetime (7.0 format: type + value)
+SubElement(dr, "lifetime_type").text = "DELETE_AFTER"
+SubElement(dr, "lifetime").text = "7d"
+
+# ── Item Prototypes ────────────────────────────────────────────
 ips = SubElement(dr, "item_prototypes")
 
 def make_item(name, keybase, delay, vtype, jpath, units=None, triggers=None):
     i = SubElement(ips, "item_prototype")
     SubElement(i, "uuid").text = U()
     SubElement(i, "name").text = f"{{#PROFILE}}: {name}"
+    SubElement(i, "type").text = "ZABBIX_PASSIVE"
     SubElement(i, "key").text = f'hermes.check.{keybase}["{{#PROFILE}}"]'
     SubElement(i, "delay").text = delay
     SubElement(i, "value_type").text = vtype
@@ -93,7 +116,7 @@ make_item("Tool calls",            "tokens", "5m", "UNSIGNED", "$.total_tool_cal
           [("Tool call spike", "{change()}>500", "WARNING")])
 make_item("Messages",              "tokens", "5m", "UNSIGNED", "$.total_messages")
 
-# ── Graph Prototypes (all under one <graph_prototypes>) ────────
+# ── Graph Prototypes ───────────────────────────────────────────
 gps = SubElement(dr, "graph_prototypes")
 
 def make_graph(name, items):
