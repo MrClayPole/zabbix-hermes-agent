@@ -10,7 +10,7 @@ import uuid
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom import minidom
 
-U = lambda: str(uuid.uuid4())
+U = lambda: uuid.uuid4().hex  # 32 hex chars, no hyphens (Zabbix 7.0 requirement)
 
 z = Element("zabbix_export")
 SubElement(z, "version").text = "7.0"
