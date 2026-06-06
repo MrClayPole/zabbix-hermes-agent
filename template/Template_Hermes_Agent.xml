@@ -1,28 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <zabbix_export>
     <version>7.0</version>
     <date>2026-06-06T00:00:00Z</date>
     <template_groups>
         <template_group>
-            <uuid>ac7c55a5-ece3-441a-b769-9a92f6178532</uuid>
+            <uuid>14923766-569a-435d-9fe3-07c65ed1cb01</uuid>
             <name>Templates/Applications</name>
         </template_group>
     </template_groups>
     <templates>
         <template>
-            <uuid>c055d073-c3ef-4fc0-a832-77d62fa12802</uuid>
+            <uuid>8b8672cb-c7fc-45b0-96a0-5fd6dd8c7c13</uuid>
             <template>Template Hermes Agent</template>
             <name>Template Hermes Agent</name>
-            <description>Zabbix template for monitoring Hermes Agent via its built-in API Server. Monitors gateway health, platform connectivity, token consumption, session activity, and tool usage across Hermes profiles with API_SERVER_ENABLED=true. Requires hermes_check.py and hermes_lld.py on the Zabbix agent.</description>
+            <description>Zabbix template for monitoring Hermes Agent. Uses the built-in API Server to collect gateway health, token consumption, and session metrics.</description>
             <groups>
-                <group>
-                    <name>Templates/Applications</name>
-                </group>
+                <group>Templates/Applications</group>
             </groups>
             <items/>
             <discovery_rules>
                 <discovery_rule>
-                    <uuid>b53bf222-f745-47c5-834a-397d52a98563</uuid>
+                    <uuid>e3de0c5a-3a9a-4fcc-ad4f-32eaca8606f9</uuid>
                     <name>Discover Hermes Profiles</name>
                     <type>ZABBIX_AGENT</type>
                     <key>hermes.profiles.discovery</key>
@@ -40,13 +38,13 @@
                     </filter>
                     <item_prototypes>
                         <item_prototype>
-                            <uuid>c2eb3ccb-79d2-42b3-afd3-4709a366b2d5</uuid>
+                            <uuid>f2ddb92b-f141-47f2-814a-a949ad260d39</uuid>
                             <name>{#PROFILE}: Gateway running</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.health["{#PROFILE}"]</key>
+                            <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
                             <delay>1m</delay>
                             <value_type>UNSIGNED</value_type>
-                            <description>1 if gateway_state is running, 0 otherwise</description>
+                            <units>tokens</units>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -57,22 +55,22 @@
                             </preprocessing>
                             <triggers>
                                 <trigger_prototype>
-                                    <uuid>586bc174-23a5-49d3-97d0-85ea42eb6d18</uuid>
+                                    <uuid>c705ee2f-f5e5-4607-b510-4db7fa1d2125</uuid>
                                     <expression>{last()}=0</expression>
                                     <name>{#PROFILE}: Gateway process is down</name>
                                     <priority>HIGH</priority>
-                                    <description>The Hermes gateway for profile {#PROFILE} is not running. Check the systemd service or gateway logs.</description>
                                 </trigger_prototype>
                             </triggers>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>00f15044-2fbb-4c2d-9831-6bba97d4c217</uuid>
+                            <uuid>ecbb97a5-dcac-4bd3-943c-0f6f2b71f96b</uuid>
                             <name>{#PROFILE}: Active agents</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.health["{#PROFILE}"]</key>
+                            <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
                             <delay>1m</delay>
                             <value_type>UNSIGNED</value_type>
-                            <description>Number of active agent runs</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -82,14 +80,15 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>bba0f946-9fdf-46ad-9043-a5f8cbaef7c1</uuid>
+                            <uuid>ef900bdb-21a0-40df-aa81-629a13bf2500</uuid>
                             <name>{#PROFILE}: Platforms connected</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.health["{#PROFILE}"]</key>
+                            <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
                             <delay>1m</delay>
                             <value_type>UNSIGNED</value_type>
-                            <description>Number of connected messaging platforms</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -99,14 +98,15 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>5de430f3-585e-4669-a1fc-0283968f7f60</uuid>
+                            <uuid>e3837964-1fae-4b65-a7a4-953ca8d93b8d</uuid>
                             <name>{#PROFILE}: Platforms total</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.health["{#PROFILE}"]</key>
+                            <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
                             <delay>1m</delay>
                             <value_type>UNSIGNED</value_type>
-                            <description>Total configured platforms</description>
                             <preprocessing>
                                 <step>
                                     <type>JSONPATH</type>
@@ -116,11 +116,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>9be2e631-2e42-44a3-ac3a-8b1e70c24e33</uuid>
+                            <uuid>979e4478-31e1-4668-b39f-12e0d4b994e8</uuid>
                             <name>{#PROFILE}: Gateway PID</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.health["{#PROFILE}"]</key>
+                            <key>hermes.check.health[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <preprocessing>
@@ -132,11 +134,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>ff6b39f9-88a4-4dee-aaa8-52ee7e1c8629</uuid>
+                            <uuid>60e0eb8a-b630-404f-9ac1-66a4eaf29bec</uuid>
                             <name>{#PROFILE}: Input tokens</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <units>tokens</units>
@@ -149,11 +153,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>7bb937f7-4f51-4b08-b6aa-b95e37a56a99</uuid>
+                            <uuid>1328632f-a40b-4843-9087-85e00bf37f4c</uuid>
                             <name>{#PROFILE}: Output tokens</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <units>tokens</units>
@@ -166,11 +172,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>3b0a9266-91e6-44b5-9d98-a9337ae73f88</uuid>
+                            <uuid>219bf393-085c-4990-88e0-be21e0cc9cb4</uuid>
                             <name>{#PROFILE}: Cache read tokens</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <units>tokens</units>
@@ -183,11 +191,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>61d879b5-446b-4a94-aaf8-c439a080a8f5</uuid>
+                            <uuid>bff888bc-2774-4051-a776-31f2bfd21515</uuid>
                             <name>{#PROFILE}: Tokens (7d)</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <units>tokens</units>
@@ -200,11 +210,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>51a8549a-65f4-4a97-a061-4b459e3fdb14</uuid>
+                            <uuid>266fda8f-88e7-49ef-bead-60f0e711c806</uuid>
                             <name>{#PROFILE}: Active sessions</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <preprocessing>
@@ -217,19 +229,20 @@
                             </preprocessing>
                             <triggers>
                                 <trigger_prototype>
-                                    <uuid>1af25e64-5d85-4186-8c7e-eb4d7864dd15</uuid>
+                                    <uuid>e995dd13-8e21-42e4-bd8c-cfaaf3c6ee4e</uuid>
                                     <expression>{last()}=0 and {avg(1h)}=0</expression>
                                     <name>{#PROFILE}: No active sessions for 1h</name>
                                     <priority>INFO</priority>
-                                    <description>No active sessions for profile {#PROFILE} in the last hour</description>
                                 </trigger_prototype>
                             </triggers>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>ce8a34bf-a94c-42e8-9839-967c182e0e4b</uuid>
+                            <uuid>59a7e873-6556-47c1-a3e0-0ee263f51339</uuid>
                             <name>{#PROFILE}: Total sessions</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <preprocessing>
@@ -241,11 +254,13 @@
                                 </step>
                             </preprocessing>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>0c6af8e1-bee7-4f77-9ef7-3d4cd3f07018</uuid>
+                            <uuid>e082b336-159e-4c7c-8096-6798f150bdef</uuid>
                             <name>{#PROFILE}: Tool calls</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <preprocessing>
@@ -258,19 +273,20 @@
                             </preprocessing>
                             <triggers>
                                 <trigger_prototype>
-                                    <uuid>1cf4a42c-61e5-46f8-af6b-584ef03d326f</uuid>
+                                    <uuid>5aa7a8f4-ba65-4bd7-9be6-6b5d4368cc30</uuid>
                                     <expression>{change()}&gt;500</expression>
                                     <name>{#PROFILE}: Tool call spike</name>
                                     <priority>WARNING</priority>
-                                    <description>Tool call count jumped by more than 500 since last check</description>
                                 </trigger_prototype>
                             </triggers>
                         </item_prototype>
+                    </item_prototypes>
+                    <item_prototypes>
                         <item_prototype>
-                            <uuid>c2d2ddf3-2de1-4602-80d5-9ff9e2faf938</uuid>
+                            <uuid>39546a3e-6186-4aa3-be48-a73fde853c7e</uuid>
                             <name>{#PROFILE}: Messages</name>
                             <type>ZABBIX_AGENT</type>
-                            <key>hermes.check.tokens["{#PROFILE}"]</key>
+                            <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                             <delay>5m</delay>
                             <value_type>UNSIGNED</value_type>
                             <preprocessing>
@@ -283,10 +299,9 @@
                             </preprocessing>
                         </item_prototype>
                     </item_prototypes>
-                    <trigger_prototypes/>
                     <graph_prototypes>
                         <graph_prototype>
-                            <uuid>7316281e-c1e0-40a1-b9e3-b2a2a5fd21fe</uuid>
+                            <uuid>9ac55e86-508e-44fe-befb-40f026d974d6</uuid>
                             <name>{#PROFILE}: Token consumption</name>
                             <width>900</width>
                             <height>200</height>
@@ -296,29 +311,33 @@
                                     <sortorder>0</sortorder>
                                     <item>
                                         <host>Template Hermes Agent</host>
-                                        <key>hermes.check.tokens["{#PROFILE}"]</key>
+                                        <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                                     </item>
                                     <color>1A7BFF</color>
                                     <yaxisside>0</yaxisside>
                                     <calc_fnc>7</calc_fnc>
                                     <type>0</type>
                                 </graph_item>
+                            </graph_items>
+                            <graph_items>
                                 <graph_item>
-                                    <sortorder>1</sortorder>
+                                    <sortorder>0</sortorder>
                                     <item>
                                         <host>Template Hermes Agent</host>
-                                        <key>hermes.check.tokens["{#PROFILE}"]</key>
+                                        <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                                     </item>
                                     <color>00E676</color>
                                     <yaxisside>0</yaxisside>
                                     <calc_fnc>7</calc_fnc>
                                     <type>0</type>
                                 </graph_item>
+                            </graph_items>
+                            <graph_items>
                                 <graph_item>
-                                    <sortorder>2</sortorder>
+                                    <sortorder>0</sortorder>
                                     <item>
                                         <host>Template Hermes Agent</host>
-                                        <key>hermes.check.tokens["{#PROFILE}"]</key>
+                                        <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                                     </item>
                                     <color>FF9100</color>
                                     <yaxisside>0</yaxisside>
@@ -327,8 +346,10 @@
                                 </graph_item>
                             </graph_items>
                         </graph_prototype>
+                    </graph_prototypes>
+                    <graph_prototypes>
                         <graph_prototype>
-                            <uuid>c421f73f-91f8-4d3f-9dbc-616432623757</uuid>
+                            <uuid>a2e61819-b7ad-4c5c-8094-69eefe8f791b</uuid>
                             <name>{#PROFILE}: Session activity</name>
                             <width>900</width>
                             <height>200</height>
@@ -338,18 +359,20 @@
                                     <sortorder>0</sortorder>
                                     <item>
                                         <host>Template Hermes Agent</host>
-                                        <key>hermes.check.tokens["{#PROFILE}"]</key>
+                                        <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                                     </item>
                                     <color>1A7BFF</color>
                                     <yaxisside>0</yaxisside>
                                     <calc_fnc>2</calc_fnc>
                                     <type>0</type>
                                 </graph_item>
+                            </graph_items>
+                            <graph_items>
                                 <graph_item>
-                                    <sortorder>1</sortorder>
+                                    <sortorder>0</sortorder>
                                     <item>
                                         <host>Template Hermes Agent</host>
-                                        <key>hermes.check.tokens["{#PROFILE}"]</key>
+                                        <key>hermes.check.tokens[&quot;{#PROFILE}&quot;]</key>
                                     </item>
                                     <color>00E676</color>
                                     <yaxisside>0</yaxisside>
@@ -364,3 +387,4 @@
         </template>
     </templates>
 </zabbix_export>
+

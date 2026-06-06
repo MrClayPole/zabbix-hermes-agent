@@ -62,13 +62,25 @@ runs its own gateway and (optionally) its own API server on a unique port.
 The Zabbix scripts read the profile's `.env` to discover host, port, and
 API key — you never pass credentials in Zabbix item keys.
 
+### If the template import fails
+
+Run the generator script on the Zabbix server to produce a fresh XML with
+locally-generated UUIDs:
+
+```bash
+python3 scripts/generate_template.py > Template_Hermes_Agent.xml
+```
+
+Then import the generated file via Configuration → Templates → Import.
+
 ## Project Structure
 
 ```
 zabbix-hermes-agent/
 ├── scripts/
 │   ├── hermes_check.py       # Main check script (health, tokens, profiles)
-│   └── hermes_lld.py         # Zabbix LLD wrapper
+│   ├── hermes_lld.py         # Zabbix LLD wrapper
+│   └── generate_template.py  # Regenerate template XML locally
 ├── template/
 │   └── Template_Hermes_Agent.xml   # Zabbix template (7.0 LTS)
 ├── zabbix/
