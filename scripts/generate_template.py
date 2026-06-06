@@ -1,20 +1,9 @@
 #!/usr/bin/env python3
-"""Generate a Zabbix 7.0 LTS template XML for Hermes Agent monitoring.
+"""
+Generate Zabbix 7.0 LTS template XML using schema from C70XmlValidator.php.
 
 Usage:
     python3 scripts/generate_template.py > Template_Hermes_Agent.xml
-
-This generator uses the exact XML schema values from Zabbix 7.0 source:
-    - C70XmlValidator.php (schema definitions)
-    - CXmlConstantName.php (XML string constants)
-    - CXmlConstantValue.php (PHP numeric constants)
-
-Key 7.0 changes from 6.x:
-    - No <date> tag (removed in 6.4)
-    - <type> uses ZABBIX_PASSIVE (not ZABBIX_AGENT)
-    - Filter <operator> uses MATCHES_REGEX (not REGEXP)
-    - Filter needs <evaltype> before <conditions>
-    - Discovery lifetime uses <lifetime_type> + <lifetime>
 """
 
 import uuid
@@ -26,13 +15,13 @@ U = lambda: str(uuid.uuid4())
 z = Element("zabbix_export")
 SubElement(z, "version").text = "7.0"
 
-# ── Template Group ─────────────────────────────────────────────
+# Template group
 tgs = SubElement(z, "template_groups")
 tg = SubElement(tgs, "template_group")
 SubElement(tg, "uuid").text = U()
 SubElement(tg, "name").text = "Templates/Applications"
 
-# ── Template ───────────────────────────────────────────────────
+# Template
 ts = SubElement(z, "templates")
 t = SubElement(ts, "template")
 SubElement(t, "uuid").text = U()
@@ -41,8 +30,7 @@ SubElement(t, "name").text = "Template Hermes Agent"
 SubElement(t, "description").text = (
     "Zabbix template for monitoring Hermes Agent via its built-in "
     "API Server. Monitors gateway health, platform connectivity, "
-    "token consumption, session activity, and tool usage across "
-    "Hermes profiles with API_SERVER_ENABLED=true."
+    "token consumption, session activity, and tool usage."
 )
 grps = SubElement(t, "groups")
 g = SubElement(grps, "group")
@@ -57,8 +45,6 @@ SubElement(dr, "name").text = "Discover Hermes Profiles"
 SubElement(dr, "type").text = "ZABBIX_PASSIVE"
 SubElement(dr, "key").text = "hermes.profiles.discovery"
 SubElement(dr, "delay").text = "1h"
-
-# Filter
 flt = SubElement(dr, "filter")
 SubElement(flt, "evaltype").text = "AND_OR"
 conds = SubElement(flt, "conditions")
@@ -67,17 +53,18 @@ SubElement(c, "macro").text = "{#PROFILE}"
 SubElement(c, "value").text = ".*"
 SubElement(c, "operator").text = "MATCHES_REGEX"
 SubElement(c, "formulaid").text = "A"
-
-# Lifetime (7.0 format: type + value)
 SubElement(dr, "lifetime_type").text = "DELETE_AFTER"
 SubElement(dr, "lifetime").text = "7d"
 
 # ── Item Prototypes ────────────────────────────────────────────
 ips = SubElement(dr, "item_prototypes")
 
+ITEMS = []  # collect (uuid, keybase, name, triggers) for later
+
 def make_item(name, keybase, delay, vtype, jpath, units=None, triggers=None):
     i = SubElement(ips, "item_prototype")
-    SubElement(i, "uuid").text = U()
+    i_uuid = U()
+    SubElement(i, "uuid").text = i_uuid
     SubElement(i, "name").text = f"{{#PROFILE}}: {name}"
     SubElement(i, "type").text = "ZABBIX_PASSIVE"
     SubElement(i, "key").text = f'hermes.check.{keybase}["{{#PROFILE}}"]'
@@ -91,13 +78,7 @@ def make_item(name, keybase, delay, vtype, jpath, units=None, triggers=None):
     par = SubElement(s, "parameters")
     SubElement(par, "parameter").text = jpath
     if triggers:
-        tps = SubElement(i, "triggers")
-        for tp_name, tp_expr, tp_pri in triggers:
-            tp = SubElement(tps, "trigger_prototype")
-            SubElement(tp, "uuid").text = U()
-            SubElement(tp, "expression").text = tp_expr
-            SubElement(tp, "name").text = f"{{#PROFILE}}: {tp_name}"
-            SubElement(tp, "priority").text = tp_pri
+        ITEMS.append((i_uuid, keybase, name, triggers))
 
 make_item("Gateway running",       "health", "1m", "UNSIGNED", "$.gateway_up", None,
           [("Gateway process is down", "{last()}=0", "HIGH")])
@@ -115,6 +96,44 @@ make_item("Total sessions",        "tokens", "5m", "UNSIGNED", "$.total_sessions
 make_item("Tool calls",            "tokens", "5m", "UNSIGNED", "$.total_tool_calls", None,
           [("Tool call spike", "{change()}>500", "WARNING")])
 make_item("Messages",              "tokens", "5m", "UNSIGNED", "$.total_messages")
+
+# ── Trigger Prototypes (at discovery rule level, NOT in items) ─
+tps = SubElement(dr, "trigger_prototypes")
+
+# Map item name to its key for trigger expression construction
+ITEM_KEYS = {
+    "Gateway running": 'hermes.check.health["{#PROFILE}"]',
+    "Active sessions": 'hermes.check.tokens["{#PROFILE}"]',
+    "Tool calls":      'hermes.check.tokens["{#PROFILE}"]',
+}
+
+for _, keybase, name, triggers in ITEMS:
+    item_key = f'hermes.check.{keybase}["{{#PROFILE}}"]'
+    for tp_name, tp_expr, tp_pri in triggers:
+        tp = SubElement(tps, "trigger_prototype")
+        SubElement(tp, "uuid").text = U()
+        # Rewrite expression to use full host:key reference
+        full_expr = tp_expr
+        if "{last()}" in full_expr:
+            full_expr = full_expr.replace(
+                "{last()}",
+                '{Template Hermes Agent:' + item_key + '.last()}'
+            )
+        if "{avg(1h)}" in full_expr:
+            full_expr = full_expr.replace(
+                "{avg(1h)}",
+                '{Template Hermes Agent:' + item_key + '.avg(1h)}'
+            )
+        if "{change()}" in full_expr:
+            full_expr = full_expr.replace(
+                "{change()}",
+                '{Template Hermes Agent:' + item_key + '.change()}'
+            )
+        SubElement(tp, "expression").text = full_expr
+        SubElement(tp, "name").text = f"{{#PROFILE}}: {tp_name}"
+        SubElement(tp, "priority").text = tp_pri
+        # In 7.0, trigger prototypes need a <description> element
+        SubElement(tp, "description").text = f"Trigger for {{#PROFILE}}: {tp_name}"
 
 # ── Graph Prototypes ───────────────────────────────────────────
 gps = SubElement(dr, "graph_prototypes")
@@ -148,7 +167,7 @@ make_graph("Session activity", [
     ("00E676", "2", 'hermes.check.tokens["{#PROFILE}"]'),
 ])
 
-# ── Output ─────────────────────────────────────────────────────
+# Output
 rough = tostring(z, encoding="unicode")
 parsed = minidom.parseString(rough.encode("utf-8"))
 print(parsed.toprettyxml(indent="    "))
