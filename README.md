@@ -86,9 +86,9 @@ zabbix-hermes-agent/
 ├── template/
 │   └── Template_Hermes_Agent.yaml   # Zabbix template (7.0 LTS)
 ├── zabbix/
-│   ├── hermes_agent2.conf    # UserParameter config for zabbix-agent2
-│   └── sudoers.d/
-│       └── zabbix-hermes     # Sudoers rule for zabbix user
+│   └── hermes_agent2.conf    # UserParameter config for zabbix-agent2
+├── sudoers.d/
+│   └── zabbix-hermes         # Sudoers rule for zabbix user
 ├── LICENSE                   # MIT
 └── README.md
 ```
@@ -126,7 +126,7 @@ The scripts run as root via `sudo` (the zabbix user needs root to query the
 API server endpoints). Deploy the sudoers file:
 
 ```bash
-sudo cp zabbix/sudoers.d/zabbix-hermes /etc/sudoers.d/
+sudo cp sudoers.d/zabbix-hermes /etc/sudoers.d/
 sudo visudo -c
 ```
 
