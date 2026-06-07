@@ -2,13 +2,12 @@
 """Zabbix external check: query a Hermes profile's API server.
 
 Usage:
-    hermes_check.py health <profile>           # Gateway health metrics
-    hermes_check.py tokens <profile>           # Token/session aggregates  
+    hermes_check.py health <profile> [host] [port] [key]
+    hermes_check.py tokens <profile> [host] [port] [key]
     hermes_check.py profiles                   # LLD: discover profiles
 
-Each command reads the target profile's .env to find its API server
-host, port, and key — so you only pass the profile name, never a
-credential.
+Each command can receive connection details as positional args (e.g. from
+Zabbix template macros) OR fall back to reading the profile's .env.
 
 Requires:
     - HERMES_HOME env var, or defaults to /root/.hermes
@@ -79,10 +78,18 @@ def _api_get(host: str, port: str, path: str, api_key: str = "") -> dict:
         return {"error": str(e)}
 
 
-def cmd_health(profile: str) -> str:
-    """Fetch /health/detailed and return gateway metrics."""
-    host, port, key = _get_profile_connection(profile)
-    data = _api_get(host, port, "/health/detailed", key)
+def cmd_health(profile: str, host: str = None, port: str = None,
+               key: str = None) -> str:
+    """Fetch /health/detailed and return gateway metrics.
+
+    If host and port are given, use them directly (macro-based).
+    Otherwise fall back to profile .env.
+    """
+    if host and port:
+        data = _api_get(host, port, "/health/detailed", key or "")
+    else:
+        host, port, key = _get_profile_connection(profile)
+        data = _api_get(host, port, "/health/detailed", key)
 
     if "error" in data:
         return json.dumps(data)
@@ -100,10 +107,18 @@ def cmd_health(profile: str) -> str:
     })
 
 
-def cmd_tokens(profile: str) -> str:
-    """Fetch /api/sessions and aggregate token metrics."""
-    host, port, key = _get_profile_connection(profile)
-    data = _api_get(host, port, "/api/sessions?limit=200", key)
+def cmd_tokens(profile: str, host: str = None, port: str = None,
+               key: str = None) -> str:
+    """Fetch /api/sessions and aggregate token metrics.
+
+    If host and port are given, use them directly (macro-based).
+    Otherwise fall back to profile .env.
+    """
+    if host and port:
+        data = _api_get(host, port, "/api/sessions?limit=200", key or "")
+    else:
+        host, port, key = _get_profile_connection(profile)
+        data = _api_get(host, port, "/api/sessions?limit=200", key)
 
     if "error" in data:
         return json.dumps(data)
@@ -178,12 +193,15 @@ def main():
         sys.exit(1)
 
     profile = sys.argv[2]
+    host = sys.argv[3] if len(sys.argv) > 3 else None
+    port = sys.argv[4] if len(sys.argv) > 4 else None
+    key = sys.argv[5] if len(sys.argv) > 5 else ""
 
     try:
         if command == "health":
-            print(cmd_health(profile))
+            print(cmd_health(profile, host, port, key))
         elif command == "tokens":
-            print(cmd_tokens(profile))
+            print(cmd_tokens(profile, host, port, key))
         else:
             print(f"Unknown command: {command}", file=sys.stderr)
             sys.exit(1)

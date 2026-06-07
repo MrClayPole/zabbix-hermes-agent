@@ -37,6 +37,26 @@ g = SubElement(grps, "group")
 SubElement(g, "name").text = "Templates/Applications"
 SubElement(t, "items")
 
+# ── Template Macros ────────────────────────────────────────────
+# These are set per-host when the template is assigned.
+# Passed through item keys as positional parameters to hermes_check.py.
+macros_el = SubElement(t, "macros")
+
+macro_host = SubElement(macros_el, "macro")
+SubElement(macro_host, "macro").text = "{$HERMES.API.HOST}"
+SubElement(macro_host, "value").text = "127.0.0.1"
+SubElement(macro_host, "description").text = "Hermes API server hostname or IP"
+
+macro_port = SubElement(macros_el, "macro")
+SubElement(macro_port, "macro").text = "{$HERMES.API.PORT}"
+SubElement(macro_port, "value").text = "8642"
+SubElement(macro_port, "description").text = "Hermes API server port"
+
+macro_key = SubElement(macros_el, "macro")
+SubElement(macro_key, "macro").text = "{$HERMES.API.KEY}"
+SubElement(macro_key, "value").text = ""
+SubElement(macro_key, "description").text = "Hermes API server key (set per-host)"
+
 # ── Discovery Rule ─────────────────────────────────────────────
 drs = SubElement(t, "discovery_rules")
 dr = SubElement(drs, "discovery_rule")
@@ -64,7 +84,11 @@ def make_item(name, keybase, delay, vtype, jpath, field, units=None):
     SubElement(i, "uuid").text = U()
     SubElement(i, "name").text = f"{{#PROFILE}}: {name}"
     SubElement(i, "type").text = "ZABBIX_PASSIVE"
-    SubElement(i, "key").text = f'hermes.check["{keybase}","{field}","{{#PROFILE}}"]'
+    # Key includes host/port/key macros passed through from template
+    SubElement(i, "key").text = (
+        f'hermes.check["{keybase}","{field}","{{#PROFILE}}",'
+        f'"{{$HERMES.API.HOST}}","{{$HERMES.API.PORT}}","{{$HERMES.API.KEY}}"]'
+    )
     SubElement(i, "delay").text = delay
     SubElement(i, "value_type").text = vtype
     if units:
@@ -75,7 +99,6 @@ def make_item(name, keybase, delay, vtype, jpath, field, units=None):
     SubElement(s, "type").text = "JSONPATH"
     par = SubElement(s, "parameters")
     SubElement(par, "parameter").text = jpath
-    # (no triggers — added back when expression format is confirmed)
 
 make_item("Gateway running",       "health", "1m", "UNSIGNED", "$.gateway_up",  "gateway_up")
 make_item("Active agents",         "health", "1m", "UNSIGNED", "$.active_agents", "active_agents")
@@ -94,6 +117,15 @@ make_item("Messages",              "tokens", "5m", "UNSIGNED", "$.total_messages
 # ── Graph Prototypes ───────────────────────────────────────────
 gps = SubElement(dr, "graph_prototypes")
 
+
+def _macro_key(keybase, field):
+    """Build a graph key matching the item prototype key pattern."""
+    return (
+        f'hermes.check["{keybase}","{field}","{{#PROFILE}}",'
+        f'"{{$HERMES.API.HOST}}","{{$HERMES.API.PORT}}","{{$HERMES.API.KEY}}"]'
+    )
+
+
 def make_graph(name, items):
     gp = SubElement(gps, "graph_prototype")
     SubElement(gp, "uuid").text = U()
@@ -101,9 +133,8 @@ def make_graph(name, items):
     SubElement(gp, "width").text = "900"
     SubElement(gp, "height").text = "200"
     SubElement(gp, "ymin_type_1").text = "CALCULATED"
-    # ONE graph_items with MULTIPLE graph_item children
     gis = SubElement(gp, "graph_items")
-    for sortorder, (color, calc_fnc_name, key) in enumerate(items):
+    for sortorder, (color, calc_fnc_name, keybase, field) in enumerate(items):
         gi = SubElement(gis, "graph_item")
         SubElement(gi, "sortorder").text = str(sortorder)
         SubElement(gi, "color").text = color
@@ -112,29 +143,35 @@ def make_graph(name, items):
         SubElement(gi, "type").text = "SIMPLE"
         ir = SubElement(gi, "item")
         SubElement(ir, "host").text = "Template Hermes Agent"
-        SubElement(ir, "key").text = key
+        SubElement(ir, "key").text = _macro_key(keybase, field)
+
 
 make_graph("Token consumption", [
-    ("1A7BFF", "LAST", 'hermes.check["tokens","input_tokens","{#PROFILE}"]'),
-    ("00E676", "LAST", 'hermes.check["tokens","output_tokens","{#PROFILE}"]'),
-    ("FF9100", "LAST", 'hermes.check["tokens","cache_read_tokens","{#PROFILE}"]'),
+    ("1A7BFF", "LAST", "tokens", "input_tokens"),
+    ("00E676", "LAST", "tokens", "output_tokens"),
+    ("FF9100", "LAST", "tokens", "cache_read_tokens"),
 ])
 make_graph("Session activity", [
-    ("1A7BFF", "AVG", 'hermes.check["tokens","active_sessions","{#PROFILE}"]'),
-    ("00E676", "AVG", 'hermes.check["tokens","total_sessions","{#PROFILE}"]'),
+    ("1A7BFF", "AVG", "tokens", "active_sessions"),
+    ("00E676", "AVG", "tokens", "total_sessions"),
 ])
 
 # ── Trigger Prototypes (Zabbix 7.0: func(/host/key, params) format) ──
 tps = SubElement(dr, "trigger_prototypes")
 
-def make_host_key(item_key):
-    hostname = "Template Hermes Agent"
-    return f"/{hostname}/{item_key}"
+
+def _trigger_key(keybase, field):
+    """Build a trigger expression key with macros."""
+    return (
+        f'/Template Hermes Agent/hermes.check["{keybase}","{field}",'
+        f'"{{#PROFILE}}","{{$HERMES.API.HOST}}","{{$HERMES.API.PORT}}","{{$HERMES.API.KEY}}"]'
+    )
+
 
 # Trigger: Gateway down
 tp1 = SubElement(tps, "trigger_prototype")
 SubElement(tp1, "uuid").text = U()
-SubElement(tp1, "expression").text = f'last(/Template Hermes Agent/hermes.check["health","gateway_up","{{#PROFILE}}"])' + '=0'
+SubElement(tp1, "expression").text = f'last({_trigger_key("health","gateway_up")})=0'
 SubElement(tp1, "name").text = '{#PROFILE}: Gateway process is down'
 SubElement(tp1, "priority").text = "HIGH"
 
@@ -142,9 +179,9 @@ SubElement(tp1, "priority").text = "HIGH"
 tp2 = SubElement(tps, "trigger_prototype")
 SubElement(tp2, "uuid").text = U()
 SubElement(tp2, "expression").text = (
-    f'last(/Template Hermes Agent/hermes.check["tokens","active_sessions","{{#PROFILE}}"])' + '=0'
+    f'last({_trigger_key("tokens","active_sessions")})=0'
     ' and '
-    f'avg(/Template Hermes Agent/hermes.check["tokens","active_sessions","{{#PROFILE}}"],1h)' + '=0'
+    f'avg({_trigger_key("tokens","active_sessions")},1h)=0'
 )
 SubElement(tp2, "name").text = '{#PROFILE}: No active sessions for 1h'
 SubElement(tp2, "priority").text = "INFO"
@@ -152,7 +189,7 @@ SubElement(tp2, "priority").text = "INFO"
 # Trigger: Tool call spike
 tp3 = SubElement(tps, "trigger_prototype")
 SubElement(tp3, "uuid").text = U()
-SubElement(tp3, "expression").text = f'change(/Template Hermes Agent/hermes.check["tokens","tool_calls","{{#PROFILE}}"])' + '>500'
+SubElement(tp3, "expression").text = f'change({_trigger_key("tokens","tool_calls")})>500'
 SubElement(tp3, "name").text = '{#PROFILE}: Tool call spike'
 SubElement(tp3, "priority").text = "WARNING"
 
