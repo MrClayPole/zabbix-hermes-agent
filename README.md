@@ -16,11 +16,14 @@ sudo cp zabbix/hermes_agent2.conf /etc/zabbix/zabbix_agent2.d/hermes_agent.conf
 # 3. Restart the agent2 service
 sudo systemctl restart zabbix-agent2
 
-# 4. Import Template_Hermes_Agent.xml into Zabbix Server
-#    Configuration → Templates → Import → select template/Template_Hermes_Agent.xml
+# 4. Import Template_Hermes_Agent.yaml into Zabbix Server
+#    Configuration → Templates → Import → select template/Template_Hermes_Agent.yaml
 
 # 5. Attach the template to the Hermes host
 #    Configuration → Hosts → [your host] → Templates → Link "Template Hermes Agent"
+
+# 6. Set the host macro {$HERMES.API.KEY} to your Hermes API key
+#    ({$HERMES.API.HOST} and {$HERMES.API.PORT} have sensible defaults)
 ```
 
 ## Prerequisites
@@ -47,7 +50,8 @@ Restart the Hermes gateway after adding these.
 │ Gateway      │     │ :8642            │     │ (UserParameter)  │
 │ (profile)    │     │ /health/detailed │     │                  │
 │              │     │ /api/sessions    │     │ hermes_check.py  │
-└──────────────┘     └──────────────────┘     └──────────────────┘
+└──────────────┘     └──────────────────┘     │ + template macros │
+                                              └──────────────────┘
                                                        │
                                                        ▼
                                                 ┌──────────────────┐
@@ -57,18 +61,22 @@ Restart the Hermes gateway after adding these.
                                                 └──────────────────┘
 ```
 
-The API Server is a standard Hermes gateway platform adapter. Each profile
-runs its own gateway and (optionally) its own API server on a unique port.
-The Zabbix scripts read the profile's `.env` to discover host, port, and
-API key — you never pass credentials in Zabbix item keys.
+Connection details (host, port, API key) are managed via **Zabbix template macros**:
+
+- `{$HERMES.API.HOST}` — Hermes API server hostname (default: `127.0.0.1`)
+- `{$HERMES.API.PORT}` — Hermes API server port (default: `8642`)
+- `{$HERMES.API.KEY}` — Hermes API key (no default, set per-host)
+
+This means the Zabbix user no longer needs read access to `.env` files.
+All connection details are configured in Zabbix itself, where they belong.
 
 ### If the template import fails
 
-Run the generator script on the Zabbix server to produce a fresh XML with
+Run the generator script on the Zabbix server to produce a fresh YAML with
 locally-generated UUIDs:
 
 ```bash
-python3 scripts/generate_template.py > Template_Hermes_Agent.xml
+python3 scripts/generate_template.py > Template_Hermes_Agent.yaml
 ```
 
 Then import the generated file via Configuration → Templates → Import.
@@ -80,9 +88,9 @@ zabbix-hermes-agent/
 ├── scripts/
 │   ├── hermes_check.py       # Main check script (health, tokens, profiles)
 │   ├── hermes_lld.py         # Zabbix LLD wrapper
-│   └── generate_template.py  # Regenerate template XML locally
+│   └── generate_template.py  # Regenerate template YAML locally
 ├── template/
-│   └── Template_Hermes_Agent.xml   # Zabbix template (7.0 LTS)
+│   └── Template_Hermes_Agent.yaml   # Zabbix template (7.0 LTS)
 ├── zabbix/
 │   └── hermes_agent2.conf    # UserParameter config for zabbix-agent2
 ├── LICENSE                   # MIT
@@ -111,15 +119,26 @@ The LLD discovery script reads each profile's `.env` and returns all
 profiles with `API_SERVER_ENABLED=true`. Zabbix then creates item
 prototypes for each discovered profile automatically.
 
+**Important:** Set the host macro `{$HERMES.API.KEY}` to the correct API key
+for each host. If you run multiple profiles on the same host, use the same
+key for all profiles — the script passes the key from the macro to every
+check.
+
 ## What It Monitors
 
 ### Per Profile (auto-discovered via LLD)
 
-| Category | Items | Trigger |
-|----------|-------|---------|
-| **Gateway health** | running (1/0), active agents, platforms connected, PID | **HIGH** if gateway down |
-| **Token consumption** | input, output, cache read, 7d total | **WARNING** on spike (>500 tool call change) |
-| **Session activity** | active sessions, total sessions, tool calls, messages | **INFO** if idle for 1h |
+**Gateway health**
+- running (1/0), active agents, platforms connected, PID
+- **HIGH** trigger if gateway down
+
+**Token consumption**
+- input, output, cache read, 7d total
+- **WARNING** on spike (>500 tool call change)
+
+**Session activity**
+- active sessions, total sessions, tool calls, messages
+- **INFO** if idle for 1h
 
 ### Graphs
 
@@ -158,3 +177,4 @@ diverging and both latency and real cost go up.
 MIT
 
 Copyright (c) 2026 Mat Clarke
+
