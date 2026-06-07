@@ -1,0 +1,5 @@
+# Allow zabbix user to run Hermes monitoring scripts as root (no password)
+# Used by zabbix-agent2 for profile discovery and API health checks
+Defaults:zabbix env_keep += "HERMES_HOME"
+zabbix ALL=(root) NOPASSWD: /usr/bin/python3 /etc/zabbix/scripts/hermes_check.py *
+zabbix ALL=(root) NOPASSWD: /usr/bin/python3 /etc/zabbix/scripts/hermes_lld.py

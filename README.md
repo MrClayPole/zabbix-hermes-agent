@@ -72,14 +72,9 @@ All connection details are configured in Zabbix itself, where they belong.
 
 ### If the template import fails
 
-Run the generator script on the Zabbix server to produce a fresh YAML with
-locally-generated UUIDs:
-
-```bash
-python3 scripts/generate_template.py > Template_Hermes_Agent.yaml
-```
-
-Then import the generated file via Configuration → Templates → Import.
+Import the YAML file via Configuration → Templates → Import. If you get
+UUID conflicts, open the YAML in a text editor and regenerate the
+`uuid` values (use `uuidgen` or any UUID generator).
 
 ## Project Structure
 
@@ -87,19 +82,20 @@ Then import the generated file via Configuration → Templates → Import.
 zabbix-hermes-agent/
 ├── scripts/
 │   ├── hermes_check.py       # Main check script (health, tokens, profiles)
-│   ├── hermes_lld.py         # Zabbix LLD wrapper
-│   └── generate_template.py  # Regenerate template YAML locally
+│   └── hermes_lld.py         # Zabbix LLD wrapper
 ├── template/
 │   └── Template_Hermes_Agent.yaml   # Zabbix template (7.0 LTS)
 ├── zabbix/
-│   └── hermes_agent2.conf    # UserParameter config for zabbix-agent2
+│   ├── hermes_agent2.conf    # UserParameter config for zabbix-agent2
+│   └── sudoers.d/
+│       └── zabbix-hermes     # Sudoers rule for zabbix user
 ├── LICENSE                   # MIT
 └── README.md
 ```
 
 ## Per-Profile Gateway Monitoring
 
-If you run multiple Hermes gateways (e.g. `default` on port 8642 and `glados` on port 8643), each gateway needs its own API server on a unique port:
+If you run multiple Hermes gateways (e.g. `default` on port 8642 and `hermes2` on port 8643), each gateway needs its own API server on a unique port:
 
 **`~/.hermes/.env` (default):**
 ```bash
@@ -108,10 +104,10 @@ API_SERVER_KEY=key-default
 API_SERVER_PORT=8642
 ```
 
-**`~/.hermes/profiles/glados/.env`:**
+**`~/.hermes/profiles/hermes2/.env`:**
 ```bash
 API_SERVER_ENABLED=true
-API_SERVER_KEY=key-glados
+API_SERVER_KEY=key-hermes2
 API_SERVER_PORT=8643
 ```
 
@@ -123,6 +119,18 @@ prototypes for each discovered profile automatically.
 for each host. If you run multiple profiles on the same host, use the same
 key for all profiles — the script passes the key from the macro to every
 check.
+
+## Sudoers Configuration
+
+The scripts run as root via `sudo` (the zabbix user needs root to query the
+API server endpoints). Deploy the sudoers file:
+
+```bash
+sudo cp zabbix/sudoers.d/zabbix-hermes /etc/sudoers.d/
+sudo visudo -c
+```
+
+This allows the zabbix user to execute the Hermes scripts without a password.
 
 ## What It Monitors
 
@@ -153,7 +161,7 @@ on the next Low-Level Discovery poll (default: 1 hour).
 ```bash
 # To verify discovery:
 python3 scripts/hermes_check.py profiles
-# → [{"{#PROFILE}": "default"}, {"{#PROFILE}": "glados"}]
+# → [{"{#PROFILE}": "default"}, {"{#PROFILE}": "hermes2"}]
 
 # Test gateway health for a specific profile:
 python3 scripts/hermes_check.py health default
