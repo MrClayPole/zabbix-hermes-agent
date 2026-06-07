@@ -1,0 +1,223 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 0f723728be77451590fd4dbf13f38b82
+      name: Templates/Applications
+  templates:
+    - uuid: 025144002abc4a5a98cf1071e945e337
+      template: 'Template Hermes Agent'
+      name: 'Template Hermes Agent'
+      description: 'Zabbix template for monitoring Hermes Agent via its built-in API Server. Monitors gateway health, platform connectivity, token consumption, session activity, and tool usage.'
+      groups:
+        - name: Templates/Applications
+      discovery_rules:
+        - uuid: 0ddb3e5ac16c43fba92c294a3dd4fad2
+          name: 'Discover Hermes Profiles'
+          key: hermes.profiles.discovery
+          delay: 1h
+          filter:
+            conditions:
+              - macro: '{#PROFILE}'
+                value: '.*'
+                formulaid: A
+          item_prototypes:
+            - uuid: 37b0dfc5cf4e44b0a1239c9c87de370f
+              name: '{#PROFILE}: Active agents'
+              key: 'hermes.check["health","active_agents","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.active_agents
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: bf25fdd100fa4498a4c75b7dc572abd4
+              name: '{#PROFILE}: Gateway running'
+              key: 'hermes.check["health","gateway_up","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.gateway_up
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+              trigger_prototypes:
+                - uuid: 3c8e99a78e624544b8292c8c5162b1f0
+                  expression: 'last(/Template Hermes Agent/hermes.check["health","gateway_up","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"])=0'
+                  name: '{#PROFILE}: Gateway process is down'
+                  priority: HIGH
+            - uuid: 300282b8f0d948ce870fec55837268d8
+              name: '{#PROFILE}: Gateway PID'
+              key: 'hermes.check["health","pid","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.pid
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: 091d85a84d22443b84ed337567704f25
+              name: '{#PROFILE}: Platforms connected'
+              key: 'hermes.check["health","platforms_connected","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.platforms_connected
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: 8ba586e5972d487ca734e26290ca381d
+              name: '{#PROFILE}: Platforms total'
+              key: 'hermes.check["health","platforms_total","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.platforms_total
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: efd193ed4dd442818219520bf11c4fc3
+              name: '{#PROFILE}: Active sessions'
+              key: 'hermes.check["tokens","active_sessions","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.active_sessions
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+              trigger_prototypes:
+                - uuid: 931f0a5ff4fe4fe787f6503ac56583f9
+                  expression: 'last(/Template Hermes Agent/hermes.check["tokens","active_sessions","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"])=0 and avg(/Template Hermes Agent/hermes.check["tokens","active_sessions","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"],1h)=0'
+                  name: '{#PROFILE}: No active sessions for 1h'
+                  priority: INFO
+            - uuid: a2bdf6da23904ef2b92b1a3042632bc6
+              name: '{#PROFILE}: Cache read tokens'
+              key: 'hermes.check["tokens","cache_read_tokens","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              units: tokens
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_cache_read_tokens
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: f55e74f51a754c5880735629c3f98625
+              name: '{#PROFILE}: Input tokens'
+              key: 'hermes.check["tokens","input_tokens","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              units: tokens
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_input_tokens
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: 847dc85df3ee45f382f118161e54bf5d
+              name: '{#PROFILE}: Output tokens'
+              key: 'hermes.check["tokens","output_tokens","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              units: tokens
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_output_tokens
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: ae785622798b4bb5ace1178db7af02d9
+              name: '{#PROFILE}: Tokens (7d)'
+              key: 'hermes.check["tokens","tokens_7d","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              units: tokens
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.tokens_7d
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: b822bf9c10474e6c8b5dfdd1cf980977
+              name: '{#PROFILE}: Tool calls'
+              key: 'hermes.check["tokens","tool_calls","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_tool_calls
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+              trigger_prototypes:
+                - uuid: 0fe8e7c89699489394816ee2d8f95f95
+                  expression: 'change(/Template Hermes Agent/hermes.check["tokens","tool_calls","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"])>500'
+                  name: '{#PROFILE}: Tool call spike'
+                  priority: WARNING
+            - uuid: 4f4a732cefe8485bb621f86250078406
+              name: '{#PROFILE}: Messages'
+              key: 'hermes.check["tokens","total_messages","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_messages
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+            - uuid: 4a4d161e55f84c87a3def1f87220f802
+              name: '{#PROFILE}: Total sessions'
+              key: 'hermes.check["tokens","total_sessions","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+              delay: 5m
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_sessions
+              tags:
+                - tag: Application
+                  value: 'Hermes Agent'
+          graph_prototypes:
+            - uuid: 5eca680cd87742c0a1111f5d0ef14a9d
+              name: '{#PROFILE}: Session activity'
+              graph_items:
+                - color: 1A7BFF
+                  item:
+                    host: 'Template Hermes Agent'
+                    key: 'hermes.check["tokens","active_sessions","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+                - sortorder: '1'
+                  color: '00E676'
+                  item:
+                    host: 'Template Hermes Agent'
+                    key: 'hermes.check["tokens","total_sessions","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+            - uuid: 5804c8c6c423454dbdccbd8a8d4042e3
+              name: '{#PROFILE}: Token consumption'
+              graph_items:
+                - color: 1A7BFF
+                  calc_fnc: LAST
+                  item:
+                    host: 'Template Hermes Agent'
+                    key: 'hermes.check["tokens","input_tokens","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+                - sortorder: '1'
+                  color: '00E676'
+                  calc_fnc: LAST
+                  item:
+                    host: 'Template Hermes Agent'
+                    key: 'hermes.check["tokens","output_tokens","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+                - sortorder: '2'
+                  color: FF9100
+                  calc_fnc: LAST
+                  item:
+                    host: 'Template Hermes Agent'
+                    key: 'hermes.check["tokens","cache_read_tokens","{#PROFILE}","{$HERMES.API.HOST}","{$HERMES.API.PORT}","{$HERMES.API.KEY}"]'
+      macros:
+        - macro: '{$HERMES.API.HOST}'
+          value: 127.0.0.1
+          description: 'Hermes API server hostname or IP'
+        - macro: '{$HERMES.API.KEY}'
+          description: 'Hermes API server key (set per-host)'
+        - macro: '{$HERMES.API.PORT}'
+          value: '8642'
+          description: 'Hermes API server port'
